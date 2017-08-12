@@ -1,6 +1,10 @@
 #ifndef _L_BUFFER_
 #define _L_BUFFER_
 
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+
 
 typedef struct srv_buffer
 {

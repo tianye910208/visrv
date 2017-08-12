@@ -5,6 +5,8 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
+#include "lthread.h"
+#include "lbuffer.h"
 
 typedef struct srv_system
 {

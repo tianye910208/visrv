@@ -1,10 +1,10 @@
-#include "lsystem.h"
+#include "lbuffer.h"
 
 
 
 
 
-int luaopen_system(lua_State *L) {
+int luaopen_buffer(lua_State *L) {
     luaL_checkversion(L);
 
     luaL_Reg l[] = {
