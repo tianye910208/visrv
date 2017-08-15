@@ -7,6 +7,9 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
+
+#include "lbuffer.h"
+
 static void usage (const char *progname) {
     printf("usage: %s main.lua\n", progname);
 }
@@ -65,6 +68,5 @@ int main(int argc, char **argv) {
     lua_close(L);
 
     return (result && status == LUA_OK) ? EXIT_SUCCESS : EXIT_FAILURE;
-
 }
 
