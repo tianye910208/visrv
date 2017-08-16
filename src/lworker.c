@@ -17,6 +17,10 @@ static int _srv_worker_pmain(lua_State *L) {
 
     srv_worker* w = (srv_worker*)lua_touserdata(L, 1);
 
+
+    lua_pushinteger(L, w->id);
+    lua_setglobal(L, "SRV_WORKER_ID");
+
     lua_pushcfunction(L, _srv_worker_error);
 
     int status = luaL_loadfile(L, w->src);
@@ -51,11 +55,15 @@ srv_worker* srv_worker_new(int id, const char* src) {
     w->src = malloc(strlen(src)+1);
     strcpy(w->src, src);
 
-    if (id == 0)
+    return w;
+}
+
+int srv_worker_run(srv_worker* w) {
+    if (w->id == 0)
         srv_worker_proc(w);
     else
         pthread_create(&w->tid, NULL, srv_worker_proc, w);   
-    return w;
+    return w->ret;
 }
 
 int srv_worker_free(srv_worker* w) {

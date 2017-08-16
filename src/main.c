@@ -9,9 +9,10 @@
 
 
 #include "lworker.h"
+#include "lsystem.h"
 
-static void usage (const char *progname) {
-    printf("usage: %s main.lua\n", progname);
+static void usage (const char *prog) {
+    printf("usage: %s main.lua\n", prog);
 }
 
 int main(int argc, char **argv) {
@@ -20,9 +21,10 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    srv_worker* w = srv_worker_new(0, argv[1]); 
-    int ret = w->ret;
-    srv_worker_free(w);
-    return ret;
+    srand(time(0));
+    return srv_system_init(argv[1]);
 }
+
+
+
 

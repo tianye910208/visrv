@@ -28,6 +28,7 @@ typedef struct srv_worker
 } srv_worker;
 
 srv_worker* srv_worker_new(int id, const char* src);
+int srv_worker_run(srv_worker* w);
 int srv_worker_free(srv_worker* w);
 
 void* srv_worker_proc(void* ud);
