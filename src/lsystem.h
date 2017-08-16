@@ -20,7 +20,7 @@ int srv_system_init(srv_system* sys);
 int srv_system_free(srv_system* sys);
 
 int srv_system_exit(srv_system* sys);
-int srv_system_push(srv_system* sys, int tid, srv_buffer* buf);
+int srv_system_push(srv_system* sys, int tid, const char* msg);
 int srv_system_wait(int msec);
 
 
