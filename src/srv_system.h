@@ -1,11 +1,11 @@
-#ifndef _L_SYSTEM_
-#define _L_SYSTEM_
+#ifndef _SRV_SYSTEM_
+#define _SRV_SYSTEM_
 
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
 
-#include "lworker.h"
+#include "srv_worker.h"
 
 
 #define SRV_MAX 256

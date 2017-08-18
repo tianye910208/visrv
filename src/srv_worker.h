@@ -1,5 +1,5 @@
-#ifndef _L_WORKER_
-#define _L_WORKER_
+#ifndef _SRV_WORKER_
+#define _SRV_WORKER_
 
 #include <stdlib.h>
 #include <string.h>

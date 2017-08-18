@@ -1,5 +1,5 @@
-#ifndef _L_SOCKET_
-#define _L_SOCKET_
+#ifndef _SRV_SOCKET_
+#define _SRV_SOCKET_
 
 #include "lua.h"
 #include "lualib.h"

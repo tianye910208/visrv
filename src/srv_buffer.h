@@ -1,5 +1,5 @@
-#ifndef _L_BUFFER_
-#define _L_BUFFER_
+#ifndef _SRV_BUFFER_
+#define _SRV_BUFFER_
 
 #include "lua.h"
 #include "lualib.h"

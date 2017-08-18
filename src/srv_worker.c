@@ -1,4 +1,4 @@
-#include "lworker.h"
+#include "srv_worker.h"
 
 static int _srv_worker_error(lua_State *L) {
     const char *msg = lua_tostring(L, 1);
