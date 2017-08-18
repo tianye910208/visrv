@@ -34,11 +34,7 @@ int srv_worker_free(srv_worker* w);
 void* srv_worker_proc(void* ud);
 
 int srv_worker_push(srv_worker* w, srv_worker_msg* msg);
-srv_worker_msg* srv_worker_poll(srv_worker* w);
-
-
-int luaopen_worker(lua_State *L);
-
+srv_worker_msg* srv_worker_pull(srv_worker* w);
 
 
 #endif

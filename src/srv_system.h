@@ -19,16 +19,15 @@ typedef struct srv_system
 
 
 int srv_system_init(const char* src);
+
 int srv_system_fork(const char* src);
-int srv_system_exit(int tid);
+int srv_system_exit(int wid);
 
 srv_worker* srv_system_rand();
 int srv_system_wait(int msec);
-int srv_system_push(int tid, const char* msg);
-srv_worker_msg* srv_system_poll(int tid);
 
-
-int luaopen_system(lua_State *L);
+int srv_system_push(int wid, const char* str);
+srv_worker_msg* srv_system_pull(int wid);
 
 
 #endif

@@ -111,16 +111,9 @@ int srv_buffer_write(srv_buffer* buf, int pos, const char* inb, int len)
 
 
 
-int luaopen_buffer(lua_State *L) {
-    luaL_checkversion(L);
 
-    luaL_Reg l[] = {
-        {"wait", NULL},
-        {NULL, NULL},
-    };
-    luaL_newlib(L, l);
-    return 1;
-}
+
+
 
 
 

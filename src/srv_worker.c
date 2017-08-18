@@ -1,4 +1,5 @@
 #include "srv_worker.h"
+#include "srv_lualib.h"
 
 static int _srv_worker_error(lua_State *L) {
     const char *msg = lua_tostring(L, 1);
@@ -36,7 +37,6 @@ static int _srv_worker_pmain(lua_State *L) {
     return 1;
 }
 
-
 srv_worker* srv_worker_new(int id, const char* src) {
     srv_worker* w = malloc(sizeof(srv_worker));
     w->id = id;
@@ -49,7 +49,7 @@ srv_worker* srv_worker_new(int id, const char* src) {
         printf("[E][worker]%d %s %s\n", id, src, "create vm failed");
         return NULL;
     }
-    luaL_openlibs(L);
+    srv_lualib_open(L);
     w->vm = L;
 
     w->src = malloc(strlen(src)+1);
@@ -117,27 +117,19 @@ int srv_worker_push(srv_worker* w, srv_worker_msg* msg) {
         msg->next = ptr;
     } while(!__sync_bool_compare_and_swap(&w->mq, ptr, msg));
 
+    return 1;
 }
 
-srv_worker_msg* srv_worker_poll(srv_worker* w) {
+srv_worker_msg* srv_worker_pull(srv_worker* w) {
     srv_worker_msg* ptr;
     do {
         ptr = w->mq;
     } while(!__sync_bool_compare_and_swap(&w->mq, ptr, NULL));
+
     return ptr;
 }
 
 
-
-int luaopen_worker(lua_State *L) {
-    luaL_checkversion(L);
-
-    luaL_Reg l[] = {
-        {NULL, NULL},
-    };
-    luaL_newlib(L,l);
-    return 1;
-}
 
 
 

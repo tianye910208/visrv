@@ -29,8 +29,6 @@ int srv_buffer_pack(srv_buffer* buf, lua_State* L, int idx);
 int srv_buffer_unpack(srv_buffer* buf, lua_State* L);
 
 
-int luaopen_buffer(lua_State *L);
-
 
 
 #endif

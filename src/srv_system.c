@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "srv_system.h"
 
 
@@ -29,18 +30,18 @@ int srv_system_fork(const char* src) {
         id_new = id_old;
         do {
             id_new = (id_new + 1) % SRV_MAX;
-        } while(id_new != 0 && p_sys->ptr[id_new] == NULL);
+        } while(id_new == 0 || p_sys->ptr[id_new]);
     } while(!__sync_bool_compare_and_swap(&p_sys->min, id_old, id_new));
 
     __sync_add_and_fetch(&p_sys->cur, 1);
 
-
-    srv_worker* sys = srv_worker_new(id_new, src);
-    if (sys) {
-        __sync_lock_test_and_set(&p_sys->ptr[id_new], sys);
-        return srv_worker_run(sys);
+    srv_worker* w = srv_worker_new(id_old, src);
+    if (w) {
+        __sync_lock_test_and_set(&p_sys->ptr[id_new], w);
+        srv_worker_run(w);
+        return w->id;
     } else {
-        return EXIT_FAILURE;
+        return 0;
     }
 }
 
@@ -69,23 +70,31 @@ srv_worker* srv_system_rand() {
     return w;
 }
 
-int srv_system_wait(int msec);
-int srv_system_push(int tid, const char* msg);
-srv_worker_msg* srv_system_poll(int tid);
-
-
-
-
-int luaopen_system(lua_State *L) {
-    luaL_checkversion(L);
-
-    luaL_Reg l[] = {
-        {"wait", NULL},
-        {NULL, NULL},
-    };
-    luaL_newlib(L, l);
-    return 1;
+int srv_system_wait(int msec) {
+    usleep(msec*1000);
 }
+
+int srv_system_push(int wid, const char* str) {
+    srv_worker* w = p_sys->ptr[wid];
+    if(w == NULL)
+        return 0;
+
+    srv_worker_msg* msg = malloc(sizeof(srv_worker_msg));
+    msg->data = str;
+    msg->size = strlen(str);
+    msg->next = NULL;
+
+    return srv_worker_push(w, msg);
+}
+
+srv_worker_msg* srv_system_pull(int wid) {
+    srv_worker* w = p_sys->ptr[wid];
+    if(w == NULL)
+        return 0;
+
+    return srv_worker_pull(w);
+}
+
 
 
 
