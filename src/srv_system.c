@@ -33,11 +33,11 @@ int srv_system_fork(const char* src) {
         } while(id_new == 0 || p_sys->ptr[id_new]);
     } while(!__sync_bool_compare_and_swap(&p_sys->min, id_old, id_new));
 
-    __sync_add_and_fetch(&p_sys->cur, 1);
 
     srv_worker* w = srv_worker_new(id_old, src);
     if (w) {
-        __sync_lock_test_and_set(&p_sys->ptr[id_new], w);
+        __sync_add_and_fetch(&p_sys->cur, 1);
+        __sync_lock_test_and_set(&p_sys->ptr[id_old], w);
         srv_worker_run(w);
         return w->id;
     } else {
@@ -62,7 +62,7 @@ srv_worker* srv_system_rand() {
     srv_worker* w = NULL;
     int idx = rand() % (p_sys->cur - 1) + 1;
     int i = 1;
-    for(int i = 1; w == NULL && p_sys->cur > 1 && idx > 0; i++) {
+    for(int i = 1; p_sys->cur > 1 && idx > 0; i++) {
         w = p_sys->ptr[i % SRV_MAX];
         if (w && w->id > 0)
             idx--;

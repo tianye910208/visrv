@@ -8,7 +8,7 @@
 #include "srv_worker.h"
 
 
-#define SRV_MAX 256
+#define SRV_MAX 255
 
 typedef struct srv_system
 {

@@ -59,10 +59,12 @@ int luafunc_srv_system_pull(lua_State *L) {
             ptr = tmp;
         }
         luaL_checkstack(L, cnt, "luafunc:srv_system_pull");
-        while(msg) {
-            lua_pushlstring(L, msg->data, msg->size);
-            old = msg;
-            msg = msg->next;
+
+        ptr = old;
+        while(ptr) {
+            lua_pushlstring(L, ptr->data, ptr->size);
+            old = ptr;
+            ptr = ptr->next;
             free(old);
         }
         return cnt;
