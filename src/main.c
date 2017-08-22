@@ -8,8 +8,7 @@
 #include "lauxlib.h"
 
 
-#include "lworker.h"
-#include "lsystem.h"
+#include "srv_server.h"
 
 static void usage (const char *prog) {
     printf("usage: %s main.lua\n", prog);
@@ -22,7 +21,7 @@ int main(int argc, char **argv) {
     }
 
     srand(time(0));
-    return srv_system_init(argv[1]);
+    return srv_server_init(argv[1]);
 }
 
 

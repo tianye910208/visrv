@@ -1,4 +1,6 @@
-local function _encode(var)
+local mod = {}
+
+mod.encode = function(var)
     local str = {}
     local str_map = {}
     local tbl = {} --{{{tag, key,tag,val}},...}
@@ -71,7 +73,7 @@ local function _encode(var)
     return table.concat(bin)
 end
 
-local function _decode(bin)
+mod.decode = function(bin)
     local str = {}
     local tbl = {}
 
@@ -140,32 +142,49 @@ local function _printr(var, tab)
     end
 end
 
---testcase------------------
---[[
-local v = {
-    dest = 1001,
-    from = "agent001",
-    data = {
-        msgid = 999,
-        desc = "setTransform",
-        null = "",
-        pos = {1,2,3},
-        rot = {90,0,0},
+mod.printr = function(v) 
+    print(_printr(v, "")) 
+end
+
+mod.push = function(mid, cmd)
+
+end
+
+mod.fork = function(src, req, cls, arg, sid, wid, mid)
+    msg = {"fork", cls, arg, mid}
+    mod.send(src, req, {sid or SERVER_ID, wid or 255, 0}, msg)
+end
+
+mod.exit = function(src, req, uid, arg)
+    local sid, wid, mid = uid[1], uid[2], uid[3]
+    local msg = {"exit", mid, arg}
+    mod.send(src, req, {sid, wid, 0}, msg)
+end
+
+mod.send = function(src, req, uid, msg)
+    local sid, wid, mid = uid[1], uid[2], uid[3]
+    local cmd = {
+        mod = mid,
+        src = src,
+        req = req,
+        msg = msg,
     }
-}
 
-print(_printr(v, ""))
-local b = _encode(v)
-local t = _decode(b)
-print(_printr(t, ""))
---]]------------------------
+    if sid ~= SERVER_ID then
+        mod.push(0, {"send", sid, wid, cmd})
+    elseif wid == WORKER_ID then
+        mod.push(mid, cmd)
+    else
+        if wid == 255 then
+            wid = server.rand()
+        end
+        server.push(wid, mod.encode(cmd))
+    end
+end
 
-return {
-    encode = _encode, 
-    decode = _decode,
-    printr = function(v) print(_printr(v, "")) end,
-}
 
+
+return mod
 
 
 

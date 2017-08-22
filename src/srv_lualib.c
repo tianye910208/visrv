@@ -1,24 +1,24 @@
 #include "srv_lualib.h"
-#include "srv_system.h"
+#include "srv_server.h"
 
 
 
-int luafunc_srv_system_fork(lua_State *L) {
+int luafunc_srv_server_fork(lua_State *L) {
     const char* src = luaL_checkstring(L, 1);
-    int wid = srv_system_fork(src);
+    int wid = srv_server_fork(src);
     lua_pushinteger(L, wid);
     return 1;
 }
 
-int luafunc_srv_system_exit(lua_State *L) {
+int luafunc_srv_server_exit(lua_State *L) {
     int wid = luaL_checkinteger(L, 1);
-    int ret = srv_system_exit(wid);
+    int ret = srv_server_exit(wid);
     lua_pushboolean(L, ret);
     return 1;
 }
 
-int luafunc_srv_system_rand(lua_State *L) {
-    srv_worker* w = srv_system_rand();
+int luafunc_srv_server_rand(lua_State *L) {
+    srv_worker* w = srv_server_rand();
     if (w) {
         lua_pushinteger(L, w->id);
         return 1;
@@ -27,24 +27,25 @@ int luafunc_srv_system_rand(lua_State *L) {
     }
 }
 
-int luafunc_srv_system_wait(lua_State *L) {
+int luafunc_srv_server_wait(lua_State *L) {
     int msec = luaL_checkinteger(L, 1);
-    srv_system_wait(msec);
+    srv_server_wait(msec);
     return 0;
 }
 
-int luafunc_srv_system_push(lua_State *L) {
+int luafunc_srv_server_push(lua_State *L) {
     int wid = luaL_checkinteger(L, 1);
-    const char* str = luaL_checkstring(L, 2);
+    size_t size = 0;
+    const char* data = luaL_checklstring(L, 2, &size);
 
-    int ret = srv_system_push(wid, str);
+    int ret = srv_server_push(wid, data, size);
     lua_pushinteger(L, ret);
     return 1;
 }
 
-int luafunc_srv_system_pull(lua_State *L) {
+int luafunc_srv_server_pull(lua_State *L) {
     int wid = luaL_checkinteger(L, 1);
-    srv_worker_msg* msg = srv_system_pull(wid);
+    srv_worker_msg* msg = srv_server_pull(wid);
     if (msg) {
         luaL_checkinteger(L, 1);
         int cnt = 0;
@@ -58,7 +59,7 @@ int luafunc_srv_system_pull(lua_State *L) {
             old = ptr;
             ptr = tmp;
         }
-        luaL_checkstack(L, cnt, "luafunc:srv_system_pull");
+        luaL_checkstack(L, cnt, "luafunc:srv_server_pull");
 
         ptr = old;
         while(ptr) {
@@ -73,16 +74,16 @@ int luafunc_srv_system_pull(lua_State *L) {
     }
 }
 
-int luaopen_srv_system(lua_State *L) {
+int luaopen_srv_server(lua_State *L) {
     luaL_checkversion(L);
 
     luaL_Reg l[] = {
-        {"fork", luafunc_srv_system_fork},
-        {"exit", luafunc_srv_system_exit},
-        {"rand", luafunc_srv_system_rand},
-        {"wait", luafunc_srv_system_wait},
-        {"push", luafunc_srv_system_push},
-        {"pull", luafunc_srv_system_pull},
+        {"fork", luafunc_srv_server_fork},
+        {"exit", luafunc_srv_server_exit},
+        {"rand", luafunc_srv_server_rand},
+        {"wait", luafunc_srv_server_wait},
+        {"push", luafunc_srv_server_push},
+        {"pull", luafunc_srv_server_pull},
         {NULL, NULL},
     };
     luaL_newlib(L, l);
@@ -95,7 +96,7 @@ int srv_lualib_open(lua_State *L) {
     luaL_checkversion(L);
     luaL_openlibs(L);
 
-    luaL_requiref(L, "system", luaopen_srv_system, 1);
+    luaL_requiref(L, "server", luaopen_srv_server, 1);
 
     return 1;
 }

@@ -20,7 +20,7 @@ static int _srv_worker_pmain(lua_State *L) {
 
 
     lua_pushinteger(L, w->id);
-    lua_setglobal(L, "SRV_WORKER_ID");
+    lua_setglobal(L, "WORKER_ID");
 
     lua_pushcfunction(L, _srv_worker_error);
 

@@ -1,11 +1,11 @@
 #include <unistd.h>
-#include "srv_system.h"
+#include "srv_server.h"
 
 
-static srv_system g_sys;
-srv_system*       p_sys = &g_sys;
+static srv_server g_sys;
+srv_server*       p_sys = &g_sys;
 
-int srv_system_init(const char* src) {
+int srv_server_init(const char* src) {
     p_sys->min = 1;
     p_sys->cur = 1;
 
@@ -20,7 +20,7 @@ int srv_system_init(const char* src) {
     }
 }
 
-int srv_system_fork(const char* src) {
+int srv_server_fork(const char* src) {
     if (p_sys->cur + 8 > SRV_MAX)
         return 0;
 
@@ -45,7 +45,7 @@ int srv_system_fork(const char* src) {
     }
 }
 
-int srv_system_exit(int wid) {
+int srv_server_exit(int wid) {
     __sync_lock_test_and_set(&p_sys->ptr[wid], NULL);
     __sync_sub_and_fetch(&p_sys->cur, 1);
 
@@ -58,36 +58,35 @@ int srv_system_exit(int wid) {
     return 1;
 }
 
-srv_worker* srv_system_rand() {
+srv_worker* srv_server_rand() {
     srv_worker* w = NULL;
-    int idx = rand() % (p_sys->cur - 1) + 1;
-    int i = 1;
-    for(int i = 1; p_sys->cur > 1 && idx > 0; i++) {
+    int idx = rand() % p_sys->cur + 1;
+    for(int i = 0; p_sys->cur > 1 && idx > 0; i++) {
         w = p_sys->ptr[i % SRV_MAX];
-        if (w && w->id > 0)
+        if (w)
             idx--;
     }
     return w;
 }
 
-int srv_system_wait(int msec) {
+int srv_server_wait(int msec) {
     usleep(msec*1000);
 }
 
-int srv_system_push(int wid, const char* str) {
+int srv_server_push(int wid, const char* data, int size) {
     srv_worker* w = p_sys->ptr[wid];
     if(w == NULL)
         return 0;
 
     srv_worker_msg* msg = malloc(sizeof(srv_worker_msg));
-    msg->data = str;
-    msg->size = strlen(str);
+    msg->data = data;
+    msg->size = size;
     msg->next = NULL;
 
     return srv_worker_push(w, msg);
 }
 
-srv_worker_msg* srv_system_pull(int wid) {
+srv_worker_msg* srv_server_pull(int wid) {
     srv_worker* w = p_sys->ptr[wid];
     if(w == NULL)
         return 0;
