@@ -1,3 +1,4 @@
+
 local mod = {}
 
 mod.encode = function(var)
@@ -146,8 +147,19 @@ mod.printr = function(v)
     print(_printr(v, "")) 
 end
 
-mod.push = function(mid, cmd)
+local worker_mq1 = {}
+local worker_mq2 = {}
 
+mod.push = function(cmd)
+    table.insert(worker_mq1, cmd)
+end
+
+mod.pull = function()
+    if next(worker_mq1) then
+        worker_mq1, worker_mq2 = worker_mq2, worker_mq1
+        return worker_mq2
+    end
+    return nil 
 end
 
 mod.fork = function(src, req, cls, arg, sid, wid, mid)
@@ -171,9 +183,12 @@ mod.send = function(src, req, uid, msg)
     }
 
     if sid ~= SERVER_ID then
-        mod.push(0, {"send", sid, wid, cmd})
+        mod.push({
+            mod = 0,
+            msg = {"send", sid, wid, cmd},
+        })
     elseif wid == WORKER_ID then
-        mod.push(mid, cmd)
+        mod.push(cmd)
     else
         if wid == 255 then
             wid = server.rand()

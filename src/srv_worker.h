@@ -23,11 +23,12 @@ typedef struct srv_worker
     lua_State*      vm;
     srv_worker_msg* mq;
     char*           src;
+    int             sid;
     pthread_t       tid;         
     int             ret;
 } srv_worker;
 
-srv_worker* srv_worker_new(int id, const char* src);
+srv_worker* srv_worker_new(int id, const char* src, int sid);
 int srv_worker_run(srv_worker* w);
 int srv_worker_free(srv_worker* w);
 

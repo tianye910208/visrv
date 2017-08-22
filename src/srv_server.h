@@ -12,13 +12,14 @@
 
 typedef struct srv_server
 {
+    int         sid;
     int         min;
     int         cur;
     srv_worker* ptr[SRV_MAX];
 } srv_server;
 
 
-int srv_server_init(const char* src);
+int srv_server_init(const char* src, int sid);
 
 int srv_server_fork(const char* src);
 int srv_server_exit(int wid);

@@ -1,5 +1,5 @@
-local util = require("util")
-local printr = util.printr
+local srv = require("srv")
+local printr = srv.printr
 
 
 local mod = {}

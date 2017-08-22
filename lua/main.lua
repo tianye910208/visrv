@@ -1,41 +1,30 @@
+print("[worker]init", SERVER_ID, WORKER_ID)
 package.path = "?;?.lua;lua/?;lua/?.lua"
 
-local util = require("util")
-local decode = util.decode
-local encode = util.encode
-local printr = util.printr
+local srv = require("srv")
+local decode = srv.decode
+local encode = srv.encode
+local printr = srv.printr
+local mq_push = srv.push
+local mq_pull = srv.pull
 
 
-local list = {}
-
-list[0] = {
-    on_recv = function(self, src, req, msg)
-        if msg[1] == "fork" then
-            local cls = require(msg[2])
-            local idx = msg[3] or (#list+1)
-            local mod = setmetatable({}, {__index = cls})
-            mod.uid = {SERVER_ID, WORKER_ID, idx}
-            mod:on_init(from, msg[4])
-            return mod.uid
-        elseif msg[1] == "exit" then
-            local uid = msg[2]
-            local mid = uid and uid[3]
-            local mod = mid and list[mid]
-            if mod then
-                list[mid] = nil
-                mod:on_exit(from, msg[3])
-            end
-        end
-    end
-}
-
+local sys = require("sys")
+local modlist = sys.list
 
 while true do
     local mq = table.pack(server.pull(WORKER_ID))
     if mq.n > 0 then
         for i,v in ipairs(mq) do
+            mq_push(v)
+        end
+    end
+
+    mq = mq_pull()
+    if mq then
+        for i,v in ipairs(mq) do
             local cmd = decode(v)
-            local mod = list[cmd.mod]
+            local mod = modlist[cmd.mod]
             if mod then
                 mod:on_recv(cmd.src, cmd.req, cmd.msg)
             else

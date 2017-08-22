@@ -22,6 +22,9 @@ static int _srv_worker_pmain(lua_State *L) {
     lua_pushinteger(L, w->id);
     lua_setglobal(L, "WORKER_ID");
 
+    lua_pushinteger(L, w->sid);
+    lua_setglobal(L, "SERVER_ID");
+
     lua_pushcfunction(L, _srv_worker_error);
 
     int status = luaL_loadfile(L, w->src);
@@ -37,10 +40,11 @@ static int _srv_worker_pmain(lua_State *L) {
     return 1;
 }
 
-srv_worker* srv_worker_new(int id, const char* src) {
+srv_worker* srv_worker_new(int id, const char* src, int sid) {
     srv_worker* w = malloc(sizeof(srv_worker));
     w->id = id;
     w->mq = NULL;
+    w->sid = sid;
     w->tid = 0;
     w->ret = -1;
 
