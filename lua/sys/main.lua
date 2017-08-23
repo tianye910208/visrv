@@ -6,16 +6,9 @@ if WORKER_ID ~= 0 then
 end
 
 local sys = "lua/sys/sys.lua"
-local ids = {}
 for i = 1, 3 do
-    ids[i] = server.fork(sys);
-    server.wait(20);
+    server.fork(sys);
 end
-
-dat = require("sys/dat")
-srv = require("sys/srv")
-
-srv.fork(nil, nil, "usr/init")
 
 dofile(sys)
 

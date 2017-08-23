@@ -17,7 +17,7 @@ mod.pull = function()
 end
 
 mod.fork = function(src, req, cls, arg, sid, wid, mid)
-    msg = {"fork", cls, arg, mid}
+    local msg = {"fork", cls, arg, mid}
     mod.send(src, req, {sid or SERVER_ID, wid or 255, 0}, msg)
 end
 
@@ -50,7 +50,6 @@ mod.send = function(src, req, uid, msg)
         server.push(wid, dat.encode(cmd))
     end
 end
-
 
 
 return mod

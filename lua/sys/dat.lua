@@ -143,8 +143,12 @@ local function _printr(var, tab)
     end
 end
 
+mod.tostr = function(v)
+    return _printr(v, "")
+end
+
 mod.printr = function(v) 
-    print(_printr(v, "")) 
+    log.i(mod.tostr(v)) 
 end
 
 
