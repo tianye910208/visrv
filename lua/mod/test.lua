@@ -6,6 +6,7 @@ local mod = {}
 
 mod.on_init = function(self, src, msg)
     print("[mod]on_init", src, msg)
+    srv.send(self.uid, nil, self.uid, "Hi")
 end
 
 mod.on_exit = function(self, src, msg)
@@ -15,7 +16,7 @@ end
 
 mod.on_recv = function(self, src, msg)
     print("[mod]on_data", src, msg)
-    printr(data)
+    printr(msg)
 end
 
 

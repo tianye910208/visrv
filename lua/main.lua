@@ -16,20 +16,22 @@ while true do
     local mq = table.pack(server.pull(WORKER_ID))
     if mq.n > 0 then
         for i,v in ipairs(mq) do
-            mq_push(v)
+            mq_push(decode(v))
         end
     end
 
     mq = mq_pull()
     if mq then
-        for i,v in ipairs(mq) do
-            local cmd = decode(v)
-            local mod = modlist[cmd.mod]
+        for i = 1, #mq do
+            local v = mq[i]
+            mq[i] = nil
+
+            local mod = modlist[v.mod]
             if mod then
-                mod:on_recv(cmd.src, cmd.req, cmd.msg)
+                mod:on_recv(v.src, v.msg)
             else
-                print("[worker]cmd mod miss")
-                printr(cmd)
+                print("[worker]mod miss")
+                printr(v)
             end
         end
     else

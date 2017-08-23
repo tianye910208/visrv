@@ -5,15 +5,15 @@ mod.uid = {SERVER_ID, WORKER_ID, 0}
 mod.list = {}
 mod.list[0] = mod
 
-mod.on_recv = function(self, src, req, msg)
+mod.on_recv = function(self, src, msg)
     local func = self[msg[1]]
     if func then
-        func(self, src, req, msg)
+        return func(self, src, msg)
     end
 end
 
 
-mod.fork = function(self, src, req, msg)
+mod.fork = function(self, src, msg)
     local cls = require(msg[2])
     local mid = msg[3] or (#self.list+1)
     local mod = setmetatable({}, {__index = cls})
@@ -24,7 +24,7 @@ mod.fork = function(self, src, req, msg)
     return mod.uid
 end
 
-mod.exit = function(self, src, req, msg)
+mod.exit = function(self, src, msg)
     local uid = msg[2]
     local mid = uid and uid[3]
     local mod = mid and self.list[mid]
@@ -34,7 +34,7 @@ mod.exit = function(self, src, req, msg)
     end
 end
 
-mod.send = function(self, src, req, msg)
+mod.send = function(self, src, msg)
     local sid, wid, msg = msg[1], msg[2], msg[3]
 
 
