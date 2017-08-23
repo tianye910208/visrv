@@ -27,6 +27,24 @@ int luafunc_srv_server_rand(lua_State *L) {
     }
 }
 
+int luafunc_srv_server_list(lua_State *L) {
+    srv_server* p = srv_server_info();
+    if (p) {
+        lua_newtable(L);
+        int idx = 0;
+        for(int i = 0; i < SRV_MAX && idx < p->cur; i++) {
+            srv_worker* w = p->ptr[i];
+            if (w) {
+                lua_pushinteger(L, w->id);
+                lua_rawseti(L, -2, ++idx);
+            }
+        }
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 int luafunc_srv_server_wait(lua_State *L) {
     int msec = luaL_checkinteger(L, 1);
     srv_server_wait(msec);
@@ -81,6 +99,7 @@ int luaopen_srv_server(lua_State *L) {
         {"fork", luafunc_srv_server_fork},
         {"exit", luafunc_srv_server_exit},
         {"rand", luafunc_srv_server_rand},
+        {"list", luafunc_srv_server_list},
         {"wait", luafunc_srv_server_wait},
         {"push", luafunc_srv_server_push},
         {"pull", luafunc_srv_server_pull},

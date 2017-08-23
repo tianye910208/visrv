@@ -21,7 +21,7 @@ obj/%.o:%.c
 	gcc -c $< -o $@ $(CCFLAG)
 
 run:
-	./bin/$(TARGET) lua/init.lua
+	./bin/$(TARGET) lua/sys/main.lua
 
 clean:
 	rm -rf bin

@@ -1,6 +1,3 @@
-local srv = require("srv")
-local printr = srv.printr
-
 
 local mod = {}
 
@@ -16,7 +13,7 @@ end
 
 mod.on_recv = function(self, src, msg)
     print("[mod]on_data", src, msg)
-    printr(msg)
+    dat.printr(msg)
 end
 
 

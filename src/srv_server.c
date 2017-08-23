@@ -21,6 +21,10 @@ int srv_server_init(const char* src, int sid) {
     }
 }
 
+srv_server* srv_server_info() {
+    return p_srv;
+}
+
 int srv_server_fork(const char* src) {
     if (p_srv->cur + 8 > SRV_MAX)
         return 0;
