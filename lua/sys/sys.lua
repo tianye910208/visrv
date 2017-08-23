@@ -7,15 +7,15 @@ dat = require("sys/dat")
 srv = require("sys/srv")
 
 local _G = _G
-local _GG = {}
+local _P = {}
 for k,v in pairs(_G) do
-    _GG[k] = v
+    _P[k] = v
 end
-for k,v in pairs(_GG) do
+for k,v in pairs(_P) do
     _G[k] = nil
 end
-_GG.setmetatable(_G, {
-    __index = _GG,
+_P.setmetatable(_G, {
+    __index = _P,
     __newindex = function(t, k, v)
         error("set global failed: "..tostring(k).."="..tostring(v))
     end
