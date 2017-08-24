@@ -29,9 +29,11 @@ local mq_push = srv.push
 local mq_pull = srv.pull
 
 
-local mod_run = require("sys/run")
-local mod_map = mod_run.map
+local srv_map = srv.map
 local req_map = {}
+local bin_map = {}
+local bin_idx = 1
+local bin_max = 0xffff
 
 if WORKER_ID == 0 then
     srv.fork(nil, nil, "sys/log", nil, SERVER_ID, WORKER_ID)
@@ -53,22 +55,21 @@ while true do
             local v = mq[i]
             mq[i] = nil
 
-            local ret, req
+            local co, ret, req
             if v.req and v.src == nil then
-                local co = req_map[v.req]
+                co = req_map[v.req]
                 if co then
                     req_map[v.req] = nil
                     ret, req = coroutine.resume(co, table.unpack(v.msg))
                 else
-                    print("[worker]req miss")
-                    print(dat.tostr(v))
+                    req = "req miss "..v.req
                 end
             else
-                local mod = mod_map[v.mid]
+                local mod = srv_map[v.mid]
                 if mod then
-                    local co = coroutine.create(function()
+                    co = coroutine.create(function()
                         if v.req then
-                            local ret = {mod:on_recv(v.msg, v.src, v.req)}
+                            local ret = {true, mod:on_recv(v.msg, v.src, v.req)}
                             srv.send(nil, v.req, v.src, ret)
                         else
                             mod:on_recv(v.msg, v.src)
@@ -76,8 +77,7 @@ while true do
                     end)
                     ret, req = coroutine.resume(co)
                 else
-                    print("[worker]mod miss")
-                    print(dat.tostr(v))
+                    req = "mod miss "..v.mid
                 end
             end
 
@@ -85,6 +85,12 @@ while true do
                 if req then
                     req_map[req] = co
                 end
+            else
+                if v.req and v.src ~= nil then
+                    srv.send(nil, v.req, v.src, {false, req})
+                end
+                print("[E][worker]run fail:"..tostring(req))
+                print(dat.tostr(v))
             end
         end
     else

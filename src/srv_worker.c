@@ -121,7 +121,7 @@ int srv_worker_push(srv_worker* w, srv_worker_msg* msg) {
         msg->next = ptr;
     } while(!__sync_bool_compare_and_swap(&w->mq, ptr, msg));
 
-    return 1;
+    return ptr?1:0;
 }
 
 srv_worker_msg* srv_worker_pull(srv_worker* w) {

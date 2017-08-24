@@ -147,6 +147,20 @@ mod.tostr = function(v)
     return _printr(v, "")
 end
 
+mod.tohex = function(bin)
+    local str = ""
+    for i = 1, string.len(bin) do
+        str = str .. string.format("%02X ", string.byte(bin,i))
+        if i % 4 == 0 then
+            str = str .. " "
+            if i % 16 == 0 then
+                str = str .. "\n"
+            end
+        end
+    end
+    return str
+end
+
 mod.printr = function(v) 
     log.i(mod.tostr(v)) 
 end
