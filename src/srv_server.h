@@ -20,6 +20,7 @@ typedef struct srv_server
 
 
 int srv_server_init(const char* src, int sid);
+float srv_server_time();
 srv_server* srv_server_info();
 
 int srv_server_fork(const char* src);

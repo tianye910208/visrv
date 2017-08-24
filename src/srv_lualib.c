@@ -2,6 +2,11 @@
 #include "srv_server.h"
 
 
+int luafunc_srv_server_time(lua_State *L) {
+    float t = srv_server_time();
+    lua_pushnumber(L, t);
+    return 1;
+}
 
 int luafunc_srv_server_fork(lua_State *L) {
     const char* src = luaL_checkstring(L, 1);
@@ -96,6 +101,7 @@ int luaopen_srv_server(lua_State *L) {
     luaL_checkversion(L);
 
     luaL_Reg l[] = {
+        {"time", luafunc_srv_server_time},
         {"fork", luafunc_srv_server_fork},
         {"exit", luafunc_srv_server_exit},
         {"rand", luafunc_srv_server_rand},

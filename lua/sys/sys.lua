@@ -1,7 +1,7 @@
-print("[worker]init", SERVER_ID, WORKER_ID)
 package.path = "?;?.lua;lua/?;lua/?.lua"
-
 math.randomseed(os.time())
+server.wait(100*WORKER_ID)
+print("[worker]init", SERVER_ID, WORKER_ID)
 
 dat = require("sys/dat")
 srv = require("sys/srv")
@@ -35,12 +35,9 @@ local bin_map = {}
 local bin_idx = 1
 local bin_max = 0xffff
 
-if WORKER_ID == 0 then
-    srv.fork(nil, nil, "sys/log", nil, SERVER_ID, WORKER_ID)
-end
+srv.fork(nil, nil, "sys/log", nil, SERVER_ID, WORKER_ID)
 srv.fork(nil, nil, "usr/init", nil, SERVER_ID, WORKER_ID)
 
-server.wait(200*WORKER_ID)
 while true do
     local mq = table.pack(server.pull(WORKER_ID))
     if mq.n > 0 then
@@ -70,7 +67,9 @@ while true do
                     co = coroutine.create(function()
                         if v.req then
                             local ret = {true, mod:on_recv(v.msg, v.src, v.req)}
-                            srv.send(nil, v.req, v.src, ret)
+                            if ret[2] ~= srv.ret() then
+                                srv.send(nil, v.req, v.src, ret)
+                            end
                         else
                             mod:on_recv(v.msg, v.src)
                         end

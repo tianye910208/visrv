@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <sys/time.h>
 #include "srv_server.h"
 
 
@@ -23,6 +24,15 @@ int srv_server_init(const char* src, int sid) {
 
 srv_server* srv_server_info() {
     return p_srv;
+}
+
+float srv_server_time() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    
+    unsigned int t = (tv.tv_sec & 0xfffff)*100;
+    t += tv.tv_usec / 100;
+    return t / 100.0f;
 }
 
 int srv_server_fork(const char* src) {
