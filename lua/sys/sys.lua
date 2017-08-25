@@ -6,6 +6,8 @@ print("[worker]init", SERVER_ID, WORKER_ID)
 dat = require("sys/dat")
 srv = require("sys/srv")
 log = require("sys/log")
+env = require("sys/env")
+
 
 local _G = _G
 local _P = {}

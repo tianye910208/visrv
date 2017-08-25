@@ -1,44 +1,44 @@
 
-local mod = {}
-mod.uid = {SERVER_ID, 0, 1}
+local log = {}
+log.uid = {SERVER_ID, 0, 1}
 
 --log api--
-mod.i = function(...)
+log.i = function(src, ...)
     local arg = {...}
     local str = "[I]"
     for i,v in ipairs(arg) do
         str = str .. tostring(v) .. "\t"
     end
-    srv.send(src, nil, mod.uid, str) 
+    srv.cast(src, log.uid, str) 
 end
 
-mod.e = function(...)
+log.e = function(src, ...)
     local arg = {...}
     local str = "[E]"
     for i,v in ipairs(arg) do
         str = str .. tostring(v) .. "\t"
     end
-    local str = srt.."\n"..debug.traceback()
+    local str = srt.."\n"..traceback()
 
-    srv.send(src, nil, mod.uid, str)
+    srv.cast(src, log.uid, str)
     error(str)
 end
 
 --srv mod--
-mod.on_init = function(self, msg, src, req)
+log.on_init = function(self, msg, src, req)
     print("[log]", "init", self.uid[2], self.uid[3])
 end
 
-mod.on_exit = function(self, msg, src, req)
+log.on_exit = function(self, msg, src, req)
     print("[log]", "exit")
 end
 
-mod.on_recv = function(self, msg, src, req)
+log.on_recv = function(self, msg, src, req)
     print(msg)
 end
 
 
-return mod
+return log
 
 
 

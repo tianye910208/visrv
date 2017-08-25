@@ -1,34 +1,37 @@
+local co_yield = coroutine.yield
+local t_insert = table.insert
 
-local mod = {}
 
-mod.uid = {SERVER_ID, WORKER_ID, 0}
-mod.cnt = 0
-mod.map = {}
-mod.map[0] = mod
-mod.time = 0
+local srv = {}
+
+srv.uid = {SERVER_ID, WORKER_ID, 0}
+srv.cnt = 0
+srv.map = {}
+srv.map[0] = srv
+srv.time = 0
 
 local worker_idx = 1001
 local worker_req = 0
 local worker_ret = {"SKIP"}
 local worker_bin = {}
-local worker_mq1 = {{mid=mod.uid[3], msg={"_init"}}}
+local worker_mq1 = {{mid=srv.uid[3], msg={"_init"}}}
 local worker_mq2 = {}
 local worker_mqt = {}
 
-mod.req = function()
+srv.req = function()
     worker_req = worker_req + 1
     return worker_req
 end
 
-mod.ret = function()
+srv.ret = function()
     return worker_ret
 end
 
-mod.push = function(cmd)
-    table.insert(worker_mq1, cmd)
+srv.push = function(cmd)
+    t_insert(worker_mq1, cmd)
 end
 
-mod.pull = function()
+srv.pull = function()
     if next(worker_mq1) then
         worker_mq1, worker_mq2 = worker_mq2, worker_mq1
         return worker_mq2
@@ -36,24 +39,25 @@ mod.pull = function()
     return nil 
 end
 
-mod.fork = function(src, req, cls, arg, sid, wid, mid)
-    local msg = {"_fork", cls, arg, mid}
-    mod.send(src, req, {sid or SERVER_ID, wid or 255, 0}, msg)
+srv.fork = function(src, req, mod, arg, sid, wid, mid)
+    local msg = {"_fork", mod, arg, mid}
+    srv.send(src, req, {sid or SERVER_ID, wid or 255, 0}, msg)
     if src and req then
-        return select(2, assert(coroutine.yield(req)))
+        return select(2, assert(co_yield(req)))
     end
 end
 
-mod.exit = function(src, req, uid, arg)
+srv.exit = function(src, req, uid, arg)
+    uid = uid or src
     local sid, wid, mid = uid[1], uid[2], uid[3]
     local msg = {"_exit", mid, arg}
-    mod.send(src, req, {sid, wid, 0}, msg)
+    srv.send(src, req, {sid, wid, 0}, msg)
     if src and req then
-        return select(2, assert(coroutine.yield(req)))
+        return select(2, assert(co_yield(req)))
     end
 end
 
-mod.send = function(src, req, uid, msg)
+srv.send = function(src, req, uid, msg)
     local sid, wid, mid = uid[1], uid[2], uid[3]
     local cmd = {
         mid = mid,
@@ -63,12 +67,12 @@ mod.send = function(src, req, uid, msg)
     }
 
     if sid ~= SERVER_ID then
-        mod.push({
+        srv.push({
             mid = 0,
             msg = {"_send", sid, wid, cmd},
         })
     elseif wid == WORKER_ID then
-        mod.push(cmd)
+        srv.push(cmd)
     else
         if wid == 255 then
             wid = server.rand()
@@ -83,33 +87,33 @@ mod.send = function(src, req, uid, msg)
             map = {}
             worker_bin[wid] = map
         end
-        table.insert(map, bin)
+        t_insert(map, bin)
     end
 end
 
-mod.cast = function(src, uid, msg, msec)
+srv.cast = function(src, uid, msg, msec)
     if msec then
         local sms = {"_wait", msec, uid, msg}
-        mod.send(src, nil, mod.uid, sms)
+        srv.send(src, nil, srv.uid, sms)
     else
-        mod.send(src, nil, uid, msg)
+        srv.send(src, nil, uid, msg)
     end
 end
 
-mod.call = function(src, uid, msg)
-    local req = mod.req()
-    mod.send(src, req, uid, msg)
-    return select(2, assert(coroutine.yield(req)))
+srv.call = function(src, uid, msg)
+    local req = srv.req()
+    srv.send(src, req, uid, msg)
+    return select(2, assert(co_yield(req)))
 end
 
-mod.wait = function(src, msec)
+srv.wait = function(src, msec)
     local sms = {"_wait", msec}
-    return mod.call(src, mod.uid, sms)
+    return srv.call(src, srv.uid, sms)
 end
 
 
 --srv mod--
-mod.on_recv = function(self, msg, src, req)
+srv.on_recv = function(self, msg, src, req)
     local func = self[msg[1]]
     if func then
         return func(self, msg, src, req)
@@ -118,21 +122,21 @@ end
 
 
 local _loop_msg = {"_loop"}
-mod._init = function(self, msg, src, req)
-    mod.send(nil, nil, self.uid, _loop_msg)
+srv._init = function(self, msg, src, req)
+    srv.send(nil, nil, self.uid, _loop_msg)
 end
 
-mod._loop = function(self, msg, src, req)
-    mod.send(nil, nil, self.uid, _loop_msg)
+srv._loop = function(self, msg, src, req)
+    srv.send(nil, nil, self.uid, _loop_msg)
     server.wait(10)
     local t = server.time()
     
-    if t < mod.time then
+    if t < srv.time then
         for i,v in ipairs(worker_mqt) do
             v[1] = v[1] - 0xffffffff
         end
     end
-    mod.time = t
+    srv.time = t
 
     for i = #worker_mqt, 1, -1 do
         local v = worker_mqt[i]
@@ -142,48 +146,48 @@ mod._loop = function(self, msg, src, req)
             worker_mqt[i] = nil
             local src,req,uid,msg = v[2],v[3],v[4],v[5]
             if req then
-                mod.send(nil, req, uid, {true, msg})
+                srv.send(nil, req, uid, {true, msg})
             else
-                mod.send(src, req, uid, msg)
+                srv.send(src, req, uid, msg)
             end
         end
     end
 end
 
-mod._wait = function(self, msg, src, req)
+srv._wait = function(self, msg, src, req)
     local msec, uid, msg = msg[2], msg[3], msg[4]
 
-    local t = mod.time + msec
+    local t = srv.time + msec
     local m = {t, src, req, uid or src, msg}
     for i,v in ipairs(worker_mqt) do
         if t >= v[1] then
-            table.insert(worker_mqt, i, m)
+            t_insert(worker_mqt, i, m)
             m = nil
             break
         end
     end
     if m then
-        table.insert(worker_mqt, m)
+        t_insert(worker_mqt, m)
     end
-    return mod.ret()
+    return srv.ret()
 end
 
-mod._fork = function(self, msg, src, req)
-    local cls = require(msg[2])
-    if not cls then
+srv._fork = function(self, msg, src, req)
+    local mod = env.require_mod(msg[2])
+    if not mod then
         return nil
     end
 
     local sid, wid, mid = SERVER_ID, WORKER_ID, msg[3]
-    if cls.uid then
-        sid = cls.uid[1] or sid
-        wid = cls.uid[2] or wid
-        mid = cls.uid[3] or mid
+    if mod.uid then
+        sid = mod.uid[1] or sid
+        wid = mod.uid[2] or wid
+        mid = mod.uid[3] or mid
     end
 
     if sid ~= SERVER_ID or wid ~= WORKER_ID then
-        mod.send(src, req, {sid, wid, 0}, msg)
-        return nil
+        srv.send(src, req, {sid, wid, 0}, msg)
+        return srv.ret()
     end
 
     if not mid then
@@ -192,13 +196,12 @@ mod._fork = function(self, msg, src, req)
     end
 
     if self.map[mid] then
-        if cls.uid == nil then
+        if mod.uid == nil then
             print("[srv][fork] mod is running:", msg[2])
         end
-        return nil
+        return self.map[mid].uid
     end
 
-    local mod = setmetatable({}, {__index = cls})
     mod.uid = {SERVER_ID, WORKER_ID, mid}
     mod:on_init(msg[4], src, req)
 
@@ -208,7 +211,7 @@ mod._fork = function(self, msg, src, req)
     return mod.uid
 end
 
-mod._exit = function(self, msg, src, req)
+srv._exit = function(self, msg, src, req)
     local uid = msg[2]
     local mid = uid and uid[3]
     local mod = mid and self.map[mid]
@@ -220,14 +223,14 @@ mod._exit = function(self, msg, src, req)
     end
 end
 
-mod._send = function(self, msg, src, req)
+srv._send = function(self, msg, src, req)
     local sid, wid, msg = msg[1], msg[2], msg[3]
 
 
 end
 
 
-return mod
+return srv
 
 
 
