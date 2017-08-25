@@ -26,13 +26,13 @@ srv_server* srv_server_info() {
     return p_srv;
 }
 
-float srv_server_time() {
+unsigned int srv_server_time() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     
-    unsigned int t = (tv.tv_sec & 0xfffff)*100;
-    t += tv.tv_usec / 100;
-    return t / 100.0f;
+    unsigned long t = (tv.tv_sec & 0xffffffff) * 1000;
+    t += tv.tv_usec / 1000;
+    return (unsigned int)t;
 }
 
 int srv_server_fork(const char* src) {

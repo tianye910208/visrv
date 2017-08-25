@@ -3,8 +3,8 @@
 
 
 int luafunc_srv_server_time(lua_State *L) {
-    float t = srv_server_time();
-    lua_pushnumber(L, t);
+    unsigned int t = srv_server_time();
+    lua_pushinteger(L, t);
     return 1;
 }
 

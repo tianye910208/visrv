@@ -87,8 +87,13 @@ mod.send = function(src, req, uid, msg)
     end
 end
 
-mod.cast = function(src, uid, msg)
-    mod.send(src, nil, uid, msg)
+mod.cast = function(src, uid, msg, msec)
+    if msec then
+        local sms = {"_wait", msec, uid, msg}
+        mod.send(src, nil, mod.uid, sms)
+    else
+        mod.send(src, nil, uid, msg)
+    end
 end
 
 mod.call = function(src, uid, msg)
@@ -97,9 +102,9 @@ mod.call = function(src, uid, msg)
     return select(2, assert(coroutine.yield(req)))
 end
 
-mod.wait = function(src, sec)
-    local msg = {"_wait", sec}
-    return mod.call(src, mod.uid, msg)
+mod.wait = function(src, msec)
+    local sms = {"_wait", msec}
+    return mod.call(src, mod.uid, sms)
 end
 
 
@@ -121,24 +126,44 @@ mod._loop = function(self, msg, src, req)
     mod.send(nil, nil, self.uid, _loop_msg)
     server.wait(10)
     local t = server.time()
+    
+    if t < mod.time then
+        for i,v in ipairs(worker_mqt) do
+            v[1] = v[1] - 0xffffffff
+        end
+    end
     mod.time = t
 
-    print("time", t)
-
+    for i = #worker_mqt, 1, -1 do
+        local v = worker_mqt[i]
+        if v[1] > t then
+            break
+        else
+            worker_mqt[i] = nil
+            local src,req,uid,msg = v[2],v[3],v[4],v[5]
+            if req then
+                mod.send(nil, req, uid, {true, msg})
+            else
+                mod.send(src, req, uid, msg)
+            end
+        end
+    end
 end
 
 mod._wait = function(self, msg, src, req)
-    local t = mod.time + msg
-    local m = {t, src, req}
+    local msec, uid, msg = msg[2], msg[3], msg[4]
+
+    local t = mod.time + msec
+    local m = {t, src, req, uid or src, msg}
     for i,v in ipairs(worker_mqt) do
-        if t < v[1] then
+        if t >= v[1] then
             table.insert(worker_mqt, i, m)
             m = nil
             break
         end
     end
     if m then
-        table.insert(worker_mqt, i, m)
+        table.insert(worker_mqt, m)
     end
     return mod.ret()
 end
