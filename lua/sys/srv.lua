@@ -212,8 +212,7 @@ srv._fork = function(self, msg, src, req)
 end
 
 srv._exit = function(self, msg, src, req)
-    local uid = msg[2]
-    local mid = uid and uid[3]
+    local mid = msg[2]
     local mod = mid and self.map[mid]
     if mod then
         self.map[mid] = nil

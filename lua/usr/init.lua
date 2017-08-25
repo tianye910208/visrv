@@ -18,7 +18,10 @@ mod.on_recv = function(self, msg, src, req)
         log.i("wait1", time())
         wait(3000)
         log.i("wait2", time())
-        cast(self.uid, "HoldSend", 3000)
+        for i = 1, 100 do
+            --fork(nil, "usr/test")
+        end
+        exit()
     elseif msg == "Hi" then
         log.i("echo1", time())
         wait(1000)
