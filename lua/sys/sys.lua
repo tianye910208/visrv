@@ -41,6 +41,7 @@ srv.fork(nil, nil, "sys/log", nil, SERVER_ID, WORKER_ID)
 srv.fork(nil, nil, "usr/init", nil, SERVER_ID, WORKER_ID)
 
 while true do
+
     local mq = table.pack(server.pull(WORKER_ID))
     if mq.n > 0 then
         for i,v in ipairs(mq) do

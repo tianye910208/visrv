@@ -3,6 +3,7 @@ local mod = {}
 mod.on_init = function(self, msg, src, req)
     log.i("[mod]on_init", src, msg)
     cast(self.uid, "test")
+    fork(nil, "usr/stat", nil, SERVER_ID, WORKER_ID)
 end
 
 mod.on_exit = function(self, msg, src, req)
@@ -18,8 +19,8 @@ mod.on_recv = function(self, msg, src, req)
         log.i("wait1", time())
         wait(3000)
         log.i("wait2", time())
-        for i = 1, 100 do
-            --fork(nil, "usr/test")
+        for i = 1, 1000 do
+            fork(nil, "usr/test")
         end
         exit()
     elseif msg == "Hi" then

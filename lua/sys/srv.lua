@@ -13,10 +13,14 @@ srv.time = 0
 local worker_idx = 1001
 local worker_req = 0
 local worker_ret = {"SKIP"}
-local worker_bin = {}
 local worker_mq1 = {{mid=srv.uid[3], msg={"_init"}}}
 local worker_mq2 = {}
 local worker_mqt = {}
+
+
+local worker_bin_use = {}
+local worker_bin_old = {}
+local worker_bin_rec = 0
 
 srv.req = function()
     worker_req = worker_req + 1
@@ -80,12 +84,13 @@ srv.send = function(src, req, uid, msg)
         local bin = dat.encode(cmd)
         local ret = server.push(wid, bin)
         if ret == 0 then
-            worker_bin[wid] = {}
+            worker_bin_use[wid] = {}
+            worker_bin_old[wid] = nil
         end
-        local map = worker_bin[wid]
+        local map = worker_bin_use[wid]
         if not map then
             map = {}
-            worker_bin[wid] = map
+            worker_bin_use[wid] = map
         end
         t_insert(map, bin)
     end
@@ -135,8 +140,15 @@ srv._loop = function(self, msg, src, req)
         for i,v in ipairs(worker_mqt) do
             v[1] = v[1] - 0xffffffff
         end
+        worker_bin_rec = worker_bin_rec - 0xffffffff
     end
     srv.time = t
+
+    if t - worker_bin_rec > 60000 then
+        worker_bin_rec = t
+        worker_bin_old = worker_bin_use
+        worker_bin_use = {}
+    end
 
     for i = #worker_mqt, 1, -1 do
         local v = worker_mqt[i]

@@ -104,7 +104,7 @@ int srv_server_push(int wid, const char* data, int size) {
 srv_worker_msg* srv_server_pull(int wid) {
     srv_worker* w = p_srv->ptr[wid];
     if(w == NULL)
-        return 0;
+        return NULL;
 
     return srv_worker_pull(w);
 }

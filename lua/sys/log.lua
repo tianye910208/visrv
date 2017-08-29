@@ -34,7 +34,7 @@ log.on_exit = function(self, msg, src, req)
 end
 
 log.on_recv = function(self, msg, src, req)
-    print(msg)
+    --print(msg)
 end
 
 

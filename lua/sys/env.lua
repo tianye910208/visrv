@@ -45,6 +45,7 @@ env._create_env = function()
     e.tostring = tostring
     e.getmetatable = getmetatable
     e.setmetatable = setmetatable
+    e.collectgarbage = collectgarbage
 
     e.os = os
     e.io = io
