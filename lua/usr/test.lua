@@ -13,7 +13,7 @@ end
 mod.on_recv = function(self, msg, src, req)
     log.i("[mod]["..time().."]on_data", src, msg)
     if msg == "test" then
-        cast(self.uid, "test", 1000)
+        cast(self.uid, "test", 100)
     end
 end
 

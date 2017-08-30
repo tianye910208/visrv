@@ -1,5 +1,8 @@
 package.path = "?;?.lua;lua/?;lua/?.lua"
 math.randomseed(os.time())
+collectgarbage("setpause", 100)  
+collectgarbage("setstepmul", 5000)  
+
 server.wait(100*WORKER_ID)
 print("[worker]init", SERVER_ID, WORKER_ID)
 
@@ -40,7 +43,15 @@ local bin_max = 0xffff
 srv.fork(nil, nil, "sys/log", nil, SERVER_ID, WORKER_ID)
 srv.fork(nil, nil, "usr/init", nil, SERVER_ID, WORKER_ID)
 
+local time = server.time()
 while true do
+
+    local t = server.time()
+    if t - time > 1000 then
+        --server.pull(WORKER_ID)
+        print("[OVERLOAD]"..(t - time))
+    end
+    time = t
 
     local mq = table.pack(server.pull(WORKER_ID))
     if mq.n > 0 then

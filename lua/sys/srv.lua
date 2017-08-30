@@ -82,17 +82,14 @@ srv.send = function(src, req, uid, msg)
             wid = server.rand()
         end
         local bin = dat.encode(cmd)
-        local ret = server.push(wid, bin)
-        if ret == 0 then
-            worker_bin_use[wid] = {}
-            worker_bin_old[wid] = nil
+        server.push(wid, bin)
+
+        local cache = worker_bin_use[wid]
+        if not cache then
+            cache = {}
+            worker_bin_use[wid] = cache
         end
-        local map = worker_bin_use[wid]
-        if not map then
-            map = {}
-            worker_bin_use[wid] = map
-        end
-        t_insert(map, bin)
+        t_insert(cache, bin)
     end
 end
 
@@ -137,14 +134,16 @@ srv._loop = function(self, msg, src, req)
     local t = server.time()
     
     if t < srv.time then
+        srv.time = srv.time - 0xffffffff
         for i,v in ipairs(worker_mqt) do
             v[1] = v[1] - 0xffffffff
         end
         worker_bin_rec = worker_bin_rec - 0xffffffff
     end
+
     srv.time = t
 
-    if t - worker_bin_rec > 60000 then
+    if t - worker_bin_rec > 16000 then
         worker_bin_rec = t
         worker_bin_old = worker_bin_use
         worker_bin_use = {}

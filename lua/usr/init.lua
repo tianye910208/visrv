@@ -19,7 +19,7 @@ mod.on_recv = function(self, msg, src, req)
         log.i("wait1", time())
         wait(3000)
         log.i("wait2", time())
-        for i = 1, 1000 do
+        for i = 1, 500 do
             fork(nil, "usr/test")
         end
         exit()
@@ -28,6 +28,11 @@ mod.on_recv = function(self, msg, src, req)
         wait(1000)
         log.i("echo2", time())
         return "OK", "succ"
+    elseif msg == "loop" then
+        local i = 1
+        while true do
+            i = i + 1
+        end
     end
 end
 

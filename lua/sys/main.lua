@@ -6,7 +6,7 @@ if WORKER_ID ~= 0 then
 end
 
 local sys = "lua/sys/sys.lua"
-for i = 1, 7 do
+for i = 1, 3 do
     server.fork(sys);
 end
 
