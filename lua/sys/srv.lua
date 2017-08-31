@@ -13,7 +13,7 @@ srv.time = 0
 local worker_idx = 1001
 local worker_req = 0
 local worker_ret = {"SKIP"}
-local worker_mq1 = {{mid=srv.uid[3], msg={"_init"}}}
+local worker_mq1 = {}
 local worker_mq2 = {}
 local worker_mqt = {}
 
@@ -36,11 +36,8 @@ srv.push = function(cmd)
 end
 
 srv.pull = function()
-    if next(worker_mq1) then
-        worker_mq1, worker_mq2 = worker_mq2, worker_mq1
-        return worker_mq2
-    end
-    return nil 
+    worker_mq1, worker_mq2 = worker_mq2, worker_mq1
+    return worker_mq2
 end
 
 srv.fork = function(src, req, mod, arg, sid, wid, mid)
@@ -113,27 +110,8 @@ srv.wait = function(src, msec)
     return srv.call(src, srv.uid, sms)
 end
 
-
---srv mod--
-srv.on_recv = function(self, msg, src, req)
-    local func = self[msg[1]]
-    if func then
-        return func(self, msg, src, req)
-    end
-end
-
-
-local _loop_msg = {"_loop"}
-srv._init = function(self, msg, src, req)
-    srv.send(nil, nil, self.uid, _loop_msg)
-end
-
-srv._loop = function(self, msg, src, req)
-    srv.send(nil, nil, self.uid, _loop_msg)
-    server.wait(10)
-    local t = server.time()
-    
-    if t < srv.time then
+srv.tick = function(time)
+    if time < srv.time then
         srv.time = srv.time - 0xffffffff
         for i,v in ipairs(worker_mqt) do
             v[1] = v[1] - 0xffffffff
@@ -141,17 +119,17 @@ srv._loop = function(self, msg, src, req)
         worker_bin_rec = worker_bin_rec - 0xffffffff
     end
 
-    srv.time = t
+    srv.time = time
 
-    if t - worker_bin_rec > 16000 then
-        worker_bin_rec = t
+    if time - worker_bin_rec > 8000 then
+        worker_bin_rec = time
         worker_bin_old = worker_bin_use
         worker_bin_use = {}
     end
 
     for i = #worker_mqt, 1, -1 do
         local v = worker_mqt[i]
-        if v[1] > t then
+        if v[1] > time then
             break
         else
             worker_mqt[i] = nil
@@ -162,6 +140,15 @@ srv._loop = function(self, msg, src, req)
                 srv.send(src, req, uid, msg)
             end
         end
+    end
+
+end
+
+--srv mod--
+srv.on_recv = function(self, msg, src, req)
+    local func = self[msg[1]]
+    if func then
+        return func(self, msg, src, req)
     end
 end
 

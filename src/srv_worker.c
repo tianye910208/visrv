@@ -125,12 +125,11 @@ int srv_worker_push(srv_worker* w, srv_worker_msg* msg) {
 }
 
 srv_worker_msg* srv_worker_pull(srv_worker* w) {
-    srv_worker_msg* ptr;
-    do {
-        ptr = w->mq;
-    } while(!__sync_bool_compare_and_swap(&w->mq, ptr, NULL));
-
-    return ptr;
+    srv_worker_msg* ptr = w->mq;
+    if(__sync_bool_compare_and_swap(&w->mq, ptr, NULL))
+        return ptr;
+    else
+        return NULL;
 }
 
 
